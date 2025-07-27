@@ -1,7 +1,7 @@
-import Header from "../components/layout/Header";
-import Card from "../components/common/Card";
+import Header from "@/components/layout/Header";
+import Card from "@/components/common/Card";
 import { useState } from "react";
-import PostModal from "../components/common/PostModal";
+import PostModal from "@/components/common/PostModal";
 
 export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);

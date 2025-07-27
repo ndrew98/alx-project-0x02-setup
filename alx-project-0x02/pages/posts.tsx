@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import Header from "../components/layout/Header";
-import PostCard from "../components/common/PostCard";
-import { PostProps } from "../interfaces";
+import Header from "@/components/layout/Header";
+import PostCard from "@/components/common/PostCard";
+import { PostProps } from "@/interfaces";
 
 export default function PostsPage() {
   const [posts, setPosts] = useState<PostProps[]>([]);
