@@ -1,32 +1,13 @@
-import { useEffect, useState } from "react";
+import { GetStaticProps } from "next";
 import Header from "@/components/layout/Header";
 import UserCard from "@/components/common/UserCard";
 import { UserProps } from "@/interfaces";
 
-export default function UsersPage() {
-  const [users, setUsers] = useState<UserProps[]>([]);
+interface UsersPageProps {
+  users: UserProps[];
+}
 
-  useEffect(() => {
-    fetch("https://jsonplaceholder.typicode.com/users")
-      .then((res) => res.json())
-      .then((data) => {
-        type ApiUser = {
-          name: string;
-          email: string;
-          address: {
-            street: string;
-            city: string;
-          };
-        };
-        const formattedUsers = data.map((user: ApiUser) => ({
-          name: user.name,
-          email: user.email,
-          address: `${user.address.street}, ${user.address.city}`,
-        }));
-        setUsers(formattedUsers);
-      });
-  }, []);
-
+export default function UsersPage({ users }: UsersPageProps) {
   return (
     <div>
       <Header />
@@ -43,10 +24,48 @@ export default function UsersPage() {
               />
             ))
           ) : (
-            <p className="text-center text-gray-600">Loading users...</p>
+            <p className="text-center text-gray-600">No users available.</p>
           )}
         </div>
       </main>
     </div>
   );
 }
+
+export const getStaticProps: GetStaticProps<UsersPageProps> = async () => {
+  try {
+    const res = await fetch("https://jsonplaceholder.typicode.com/users");
+    const data = await res.json();
+
+    type ApiUser = {
+      name: string;
+      email: string;
+      address: {
+        street: string;
+        city: string;
+      };
+    };
+
+    const formattedUsers: UserProps[] = data.map((user: ApiUser) => ({
+      name: user.name,
+      email: user.email,
+      address: `${user.address.street}, ${user.address.city}`,
+    }));
+
+    return {
+      props: {
+        users: formattedUsers,
+      },
+      revalidate: 3600,
+    };
+  } catch (error) {
+    console.error("Failed to fetch users:", error);
+
+    return {
+      props: {
+        users: [],
+      },
+      revalidate: 60,
+    };
+  }
+};
