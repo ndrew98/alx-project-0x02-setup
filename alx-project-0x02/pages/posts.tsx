@@ -1,27 +1,13 @@
-import { useEffect, useState } from "react";
+import { GetStaticProps } from "next";
 import Header from "@/components/layout/Header";
 import PostCard from "@/components/common/PostCard";
 import { PostProps } from "@/interfaces";
 
-export default function PostsPage() {
-  const [posts, setPosts] = useState<PostProps[]>([]);
+interface PostsPageProps {
+  posts: PostProps[];
+}
 
-  useEffect(() => {
-    // Fetch posts from JSONPlaceholder API
-    fetch("https://jsonplaceholder.typicode.com/posts?_limit=6")
-      .then((res) => res.json())
-      .then((data) => {
-        const formattedPosts = data.map(
-          (post: { title: string; body: string; userId: number }) => ({
-            title: post.title,
-            content: post.body,
-            userId: post.userId,
-          })
-        );
-        setPosts(formattedPosts);
-      });
-  }, []);
-
+export default function PostsPage({ posts }: PostsPageProps) {
   return (
     <div>
       <Header />
@@ -38,10 +24,44 @@ export default function PostsPage() {
               />
             ))
           ) : (
-            <p className="text-center text-gray-600">Loading posts...</p>
+            <p className="text-center text-gray-600">No posts available.</p>
           )}
         </div>
       </main>
     </div>
   );
 }
+
+export const getStaticProps: GetStaticProps<PostsPageProps> = async () => {
+  try {
+    const res = await fetch(
+      "https://jsonplaceholder.typicode.com/posts?_limit=6"
+    );
+    const data = await res.json();
+
+    const formattedPosts: PostProps[] = data.map(
+      (post: { title: string; body: string; userId: number }) => ({
+        title: post.title,
+        content: post.body,
+        userId: post.userId,
+      })
+    );
+
+    return {
+      props: {
+        posts: formattedPosts,
+      },
+      // Revalidate the page every 3600 seconds (1 hour)
+      revalidate: 3600,
+    };
+  } catch (error) {
+    console.error("Failed to fetch posts:", error);
+
+    return {
+      props: {
+        posts: [],
+      },
+      revalidate: 60, // Retry after 1 minute if there was an error
+    };
+  }
+};
